@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-issuers
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app.kubernetes.io/name: cluster-issuers
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LoicAkaz/T-CLO-901-PAR-9-1-kube-8-infra.git
+    targetRevision: main
+    path: components/cluster-issuers/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # les CRDs de cert-manager (wave 0) peuvent ne pas encore exister au premier calcul du diff
+      - SkipDryRunOnMissingResource=true

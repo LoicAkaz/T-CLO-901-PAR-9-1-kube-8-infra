@@ -1,0 +1,18 @@
+# Issuer par défaut pendant le développement (ADR-0006). HTTP-01 via Traefik.
+# L'adresse e-mail ACME est facultative : elle n'est pas renseignée dans un dépôt public.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+  labels:
+    app.kubernetes.io/name: cluster-issuers
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: traefik
