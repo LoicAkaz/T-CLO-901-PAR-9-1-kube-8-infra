@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-efs-csi-driver
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app.kubernetes.io/name: aws-efs-csi-driver
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/aws-efs-csi-driver
+    chart: aws-efs-csi-driver
+    targetRevision: 4.5.2
+    helm:
+      valuesObject:
+        controller:
+          # un seul réplica : budget mémoire de 3 t3.small
+          replicaCount: 1
+          resources:
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {cpu: 100m, memory: 128Mi}
+        node:
+          resources:
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {cpu: 100m, memory: 128Mi}
+        sidecars:
+          livenessProbe:
+            resources:
+              requests: {cpu: 5m, memory: 16Mi}
+              limits: {cpu: 50m, memory: 32Mi}
+          nodeDriverRegistrar:
+            resources:
+              requests: {cpu: 5m, memory: 16Mi}
+              limits: {cpu: 50m, memory: 32Mi}
+          csiProvisioner:
+            resources:
+              requests: {cpu: 5m, memory: 32Mi}
+              limits: {cpu: 50m, memory: 64Mi}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
