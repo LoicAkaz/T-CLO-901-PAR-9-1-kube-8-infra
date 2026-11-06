@@ -36,7 +36,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 - [ ] `HelmChartConfig` Traefik
 - [ ] Ingress HTTPS d'ArgoCD : `argocd.<ip>.sslip.io`
 - [ ] Issuer staging par défaut ; l'issuer prod est réservé à dex et à la soutenance
-- [ ] ValidatingAdmissionPolicies déployées en mode audit (`validationActions: [Warn, Audit]`)
+- [ ] ValidatingAdmissionPolicies déployées en mode audit (`validationActions: [Warn, Audit]`) (écrites, à déployer)
 - [ ] Mesurer la mémoire consommée à ce stade et la comparer au budget
 
 ## 4. Wave 2 — Fournisseur d'identité (M4)
@@ -63,6 +63,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 ## 7. Wave 5 — Sécurité (M4)
 
 - [ ] Passer les ValidatingAdmissionPolicies en refus (`Deny`), bindings `namespaceSelector policy.kube/enforced=true`, une fois les avertissements du mode audit corrigés
+  - Prérequis : `failurePolicy: Fail`, owner GHCR et registry BDD figés, image de `whoami` déplacée sur GHCR ou namespace retiré du label, filtre `ownerReferences` resserré (solveur HTTP-01 de cert-manager, opérateurs), objets en suppression exclus, conteneurs éphémères couverts, warnings relevés par `apiserver_validating_admission_policy_check_total` (ArgoCD ne les affiche pas)
 - [ ] ClusterRoleBindings sur les groupes OIDC
 - [ ] Vérifier `kubectl` via kubelogin pour un admin et un viewer
 

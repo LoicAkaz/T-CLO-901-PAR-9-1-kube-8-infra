@@ -6,3 +6,4 @@ resources:
   - aws-efs-csi-driver.yaml
   - cluster-issuers.yaml
   - whoami.yaml
+  - admission-policies.yaml

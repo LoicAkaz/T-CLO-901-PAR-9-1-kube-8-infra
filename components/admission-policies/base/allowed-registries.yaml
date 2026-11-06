@@ -1,0 +1,60 @@
+# Warning attendu sur le namespace whoami : traefik/whoami vient de docker.io (application de test, M3).
+# ghcr.io/ est temporairement plus large que l'ADR-0016 : l'owner GHCR et le registry de la BDD restent
+# à trancher (question Q2 du ticket #43 du dépôt principal).
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: allowed-registries
+  labels:
+    app.kubernetes.io/name: admission-policies
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  # Ignore : une erreur de configuration ne doit jamais refuser une requête en mode audit.
+  failurePolicy: Ignore
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [pods, replicationcontrollers]
+      - apiGroups: [apps]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [deployments, replicasets, statefulsets, daemonsets]
+      - apiGroups: [batch]
+        apiVersions: [v1]
+        operations: [CREATE, UPDATE]
+        resources: [jobs, cronjobs]
+  # Évite les doublons : un objet créé par un contrôleur est contrôlé à travers son parent.
+  # À resserrer avant le Deny : une ownerReference quelconque suffit à exempter un objet.
+  matchConditions:
+    - name: not-controller-owned
+      expression: "!has(object.metadata.ownerReferences)"
+  variables:
+    - name: podSpec
+      expression: >-
+        request.kind.kind == 'Pod' ? dyn(object).spec :
+        request.kind.kind == 'CronJob' ? dyn(object).spec.jobTemplate.spec.template.spec :
+        dyn(object).spec.template.spec
+    - name: containers
+      expression: variables.podSpec.containers + variables.podSpec.?initContainers.orValue([])
+  validations:
+    - expression: >-
+        variables.containers.all(c, ['ghcr.io/'].exists(p, c.image.startsWith(p)))
+      message: Image hors des registries autorisés
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: allowed-registries
+  labels:
+    app.kubernetes.io/name: admission-policies
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  policyName: allowed-registries
+  # Mode audit à M3 : le passage en Deny est une tâche de la wave 5 (M4).
+  validationActions: [Warn, Audit]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        policy.kube/enforced: "true"
