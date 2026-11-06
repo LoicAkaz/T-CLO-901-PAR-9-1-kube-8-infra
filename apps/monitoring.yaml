@@ -109,6 +109,20 @@ spec:
                   app.kubernetes.io/name: argocd-application-controller
               podMetricsEndpoints:
                 - port: metrics
+          # scellé pour le cluster partagé : déchiffrable uniquement par son contrôleur (ADR-0009)
+          - apiVersion: bitnami.com/v1alpha1
+            kind: SealedSecret
+            metadata:
+              name: grafana-admin
+              namespace: monitoring
+            spec:
+              encryptedData:
+                admin-password: AgCUXmTv5AU7pss4skd0wEn/+xIobl2+GfziMUX9TlhO6Q2Cf7iU+bdxSoslXhj/yLCKos6TxZKOGXuh0ByJIq7RAM6COYCL0uT9lreN2cOXSfbb9TkzriK0bHaOCA4HsFfQlwvJwTQYMNXGbrKS2vYmEVrxLSkD37vxavXLCfb67D4YnApVZSrlDOP9dewhK0azgYEtHGQQUIEjC30/4WyOWfwrMKNgmQDbCWUZOoTeqfyo/BOmCmHxRH8OCT4tAdqdtiZrXvUGqxXsQZEbzIiVb+GcIvG5bADajpfp8w9MSFiOp07k4PgEExaEosKpnOKztpAq7O5K4DU/q1GWu/ynmd3+lElACWW6+jI/WEG0dxOT7eHux8sIaE6wo2gW1R5EMyrg/zmGuSk3D7p6Wuwva7fZI8PLSp2VvGGJ/NPhaqqH5oMMZLQGBvlS0iTGWMidp+q1e/JWXoOl1Z9z/ZwTBpsmiIHAfIZiiIb05oWozA5l5D/Xgj6T2+j8ykQyPwfIexXEXehLtw0v6zANCAV48+S3qUJ5kIV74a8YS+zLisQAjXtxhfO5/HIZWtvQ/gwLBzP1ewJTcRgqoYdYy9PoUNFR7t8uqDaLtH/dyRrYMmQrksOCIrYFe3WAOklwyXceRI+oWOZNZ6/qjXELIq1wSjtKnDmPpc31As9pAADhgNUbIfWONdFXht0lqU/y1FpHuHBIw3p5VthyTo1DA0jl9pzStStBO7mH3KL4XCc=
+                admin-user: AgA900IJPzVDjrkCRamXq9LcAb3CeorYI0LOCIRSOCc6Parjx+OE6ydKGCprpmDIsxfOxyaKp7rS+RjJ263CpQZQQQnymUSyOqp1zdH864OD+gD/eEeyyWo6nRSiTXTHrbX3C/qEmZlQetRb0suTk8TvzjjrvR3BCR2TBr/M9fbmx3uUyPYg8V2KBk1R7s8yzYeaq7MZYlIFYZo+maJITy/r9zm9DTSyEAeFmWE0xbbhIIcVef2iMPDrbNiHQ4PY2Oeu+SgbBo+3IEwcSPaXhjORNp374byeQsR69UmNpUSsEaCkvQG/KtbLJ+i7TmW3KspFoPipUMUNSDFPEsz1vN6u6LUmCoLQbA6p0qerLJNtEh1j/traL6sc4wuy5BzY0znECpK0/BSRBQ4KwG/53fJKvHmnfodcqdOjtotF6qUh+p/jSJcsXzDPEtJMIj3vU73uPx2h1VvmDg/xtnO3OCQsM/1+ugXNbnI2aURoyyI/eUi0JDfgRCRyFs8nnThoaxlYZazbxJbOq5P2aSre0a/XrORu2IABx0uIlntDGyIvlQInWvumcknEyza2RI4f/wHoTwXYPkWO+sUfztOv4klfbQSf1aPf3nTjcfOAu0p9epw9VELL2qn+SWNtJ4p5+4zbKF37S8omzasGqxao9RLUpOaL9aFZsuRu1BzcWP8+FkR2dnzr96DaU7VQeZ/ulTPFU4CcZQ==
+              template:
+                metadata:
+                  name: grafana-admin
+                  namespace: monitoring
         extraRules:
           kube-platform:
             groups:
