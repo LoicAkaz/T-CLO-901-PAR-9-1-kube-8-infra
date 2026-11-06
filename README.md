@@ -44,7 +44,7 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 |---|---|---|
 | 0 | cert-manager (CRDs inclus), Sealed Secrets, EFS CSI | Application écrite |
 | 1 | ClusterIssuers, config Traefik, StorageClass EFS | ClusterIssuers écrits ; StorageClass EFS statique écrite |
-| 2 | PostgreSQL Keycloak, Keycloak | à faire |
+| 2 | PostgreSQL Keycloak, Keycloak | PostgreSQL écrit ; Keycloak à faire |
 | 3 | dex | à faire |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | Métriques et alertes écrites, sans Ingress ni SSO ; le reste à faire |
 | 5 | Admission policies, RBAC | Policies écrites en mode audit ; RBAC à faire |

@@ -9,3 +9,4 @@ resources:
   - admission-policies.yaml
   - efs-storage.yaml
   - monitoring.yaml
+  - keycloak-db.yaml
