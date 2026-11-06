@@ -1,0 +1,29 @@
+# Issuer staging uniquement : le quota prod de sslip.io est partagé (ADR-0006).
+# Path Exact : /health et /data de whoami ne doivent pas être publics (POST /health change le code rendu aux sondes).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whoami
+  namespace: whoami
+  labels:
+    app.kubernetes.io/name: whoami
+    app.kubernetes.io/part-of: kube-test
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - whoami.56.228.56.225.sslip.io
+      secretName: whoami-tls
+  rules:
+    - host: whoami.56.228.56.225.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Exact
+            backend:
+              service:
+                name: whoami
+                port:
+                  name: http

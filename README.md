@@ -48,7 +48,7 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 | 3 | dex | à faire |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | à faire |
 | 5 | Admission policies, RBAC | à faire |
-| 6 | Application → dépôt applicatif | à faire |
+| 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
 
 ## Suivi
 

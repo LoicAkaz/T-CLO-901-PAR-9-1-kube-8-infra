@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: whoami
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  labels:
+    app.kubernetes.io/name: whoami
+    app.kubernetes.io/part-of: kube-test
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LoicAkaz/T-CLO-901-PAR-9-1-kube-8-infra.git
+    targetRevision: main
+    path: components/whoami/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: whoami
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
