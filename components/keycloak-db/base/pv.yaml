@@ -1,0 +1,21 @@
+# Lié au seul PVC de la base. Le volumeHandle fixe retrouve les mêmes données après un rebuild.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: keycloak-db
+  labels:
+    app.kubernetes.io/name: keycloak-db
+    app.kubernetes.io/part-of: kube-identity
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-static
+  claimRef:
+    namespace: identity
+    name: data-keycloak-db-0
+  csi:
+    driver: efs.csi.aws.com
+    # access point UID/GID 999, créé par un humain : remplacer fsap-A-REMPLACER avant le merge
+    volumeHandle: fs-081d9f48a078d2f28::fsap-A-REMPLACER
