@@ -7,3 +7,4 @@ resources:
   - cluster-issuers.yaml
   - whoami.yaml
   - admission-policies.yaml
+  - efs-storage.yaml

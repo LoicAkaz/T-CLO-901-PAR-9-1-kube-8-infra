@@ -27,7 +27,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 - [x] CRDs (cert-manager : `crds.enabled`)
 - [x] cert-manager v1.21.2 (écrit, jamais synchronisé)
 - [x] Sealed Secrets, chart 2.20.0 (écrit ; le contrôleur doit reprendre la clé restaurée par Ansible, rôle `sealed_secrets_key` pas encore écrit)
-- [ ] EFS CSI driver : chart 4.5.2 écrit ; StorageClass ou PV statiques, `persistentVolumeReclaimPolicy: Retain`, à faire (ID du système de fichiers et instance profile IAM, ADR-0014 « À trancher »)
+- [ ] EFS CSI driver : chart 4.5.2 écrit ; StorageClass ou PV statiques, `persistentVolumeReclaimPolicy: Retain`, à faire (ID du système de fichiers et instance profile IAM, ADR-0014 « À trancher ») (StorageClass `efs-ap` écrite, PVC d'essai `efs-ap-test` pour trancher, #49)
 - [ ] Essai PostgreSQL sur un access point EFS (permissions UID/GID, démarrage, redémarrage du pod) — valide ADR-0014 et ADR-0018 avant Keycloak
 
 ## 3. Wave 1 — Exposition (M3)

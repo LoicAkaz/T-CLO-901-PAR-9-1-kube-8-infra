@@ -43,7 +43,7 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 | Wave | Contenu | État |
 |---|---|---|
 | 0 | cert-manager (CRDs inclus), Sealed Secrets, EFS CSI | Application écrite |
-| 1 | ClusterIssuers, config Traefik | ClusterIssuers écrits |
+| 1 | ClusterIssuers, config Traefik, StorageClass EFS | ClusterIssuers écrits ; StorageClass EFS à l'essai |
 | 2 | PostgreSQL Keycloak, Keycloak | à faire |
 | 3 | dex | à faire |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | à faire |
