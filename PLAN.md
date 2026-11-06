@@ -75,7 +75,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 
 ## 9. Documentation
 
-- [ ] `docs/gitops.md` : structure, sync waves, ajout d'un composant
+- `docs/gitops.md` : tâche suivie dans le dépôt principal (ticket #42), pas ici
 - [ ] `docs/security.md` : OIDC, RBAC, admission policies, gestion des secrets
 - [ ] `docs/operations.md` (partie plateforme) : troubleshooting, renouvellement des certificats
 

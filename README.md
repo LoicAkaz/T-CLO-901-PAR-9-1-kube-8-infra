@@ -50,6 +50,11 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 | 5 | Admission policies, RBAC | Policies écrites en mode audit ; RBAC à faire |
 | 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
 
+## Documentation
+
+Guide GitOps (dépôts, Application root, waves, ajout d'un composant, déploiement par commit, staging vers prod) :
+`docs/gitops.md` du dépôt principal. Ce README ne garde que le tableau des waves ci-dessus.
+
 ## Suivi
 
 Tâches : [PLAN.md](PLAN.md).
