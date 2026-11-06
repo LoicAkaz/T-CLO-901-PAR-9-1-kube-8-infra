@@ -68,6 +68,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 
 ## 8. Wave 6 — Raccordement de l'application
 
+- [ ] Application de test `whoami` en TLS staging (écrite, à déployer ; en place jusqu'au dépôt app, M5)
 - [ ] Application ArgoCD pointant sur `deploy/overlays/prod/` du dépôt app
 - [ ] Namespace applicatif labellisé `policy.kube/enforced=true`
 
