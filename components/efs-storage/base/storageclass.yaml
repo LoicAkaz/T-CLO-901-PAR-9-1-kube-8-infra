@@ -1,0 +1,19 @@
+# Provisioning dynamique à valider sur le cluster : si CreateAccessPoint est refusé, PV statique (ADR-0014).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-ap
+  labels:
+    app.kubernetes.io/name: efs-storage
+    app.kubernetes.io/part-of: kube-platform
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-081d9f48a078d2f28
+  directoryPerms: "700"
+  uid: "999"
+  gid: "999"
+  # un rebuild doit retrouver le même access point, donc les mêmes données
+  reuseAccessPoint: "true"
+# Aucune suppression de données EFS sans confirmation explicite.
+reclaimPolicy: Retain
