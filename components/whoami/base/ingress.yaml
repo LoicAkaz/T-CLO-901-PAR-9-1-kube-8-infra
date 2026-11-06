@@ -1,4 +1,5 @@
-# Issuer staging uniquement : le quota prod de sslip.io est partagé (ADR-0006).
+# Issuer prod pour la preuve M3 (#39), un seul essai : le quota de sslip.io est partagé (ADR-0006).
+# Retour en staging juste après la preuve (décision Q1, #43).
 # Path Exact : /health et /data de whoami ne doivent pas être publics (POST /health change le code rendu aux sondes).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -9,7 +10,7 @@ metadata:
     app.kubernetes.io/name: whoami
     app.kubernetes.io/part-of: kube-test
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
   tls:
