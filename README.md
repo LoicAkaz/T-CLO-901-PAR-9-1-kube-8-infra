@@ -46,7 +46,7 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 | 1 | ClusterIssuers, config Traefik, StorageClass EFS | ClusterIssuers écrits ; StorageClass EFS à l'essai |
 | 2 | PostgreSQL Keycloak, Keycloak | à faire |
 | 3 | dex | à faire |
-| 4 | SSO ArgoCD, monitoring, logging, Headlamp | à faire |
+| 4 | SSO ArgoCD, monitoring, logging, Headlamp | Métriques et alertes écrites, sans Ingress ni SSO ; le reste à faire |
 | 5 | Admission policies, RBAC | Policies écrites en mode audit ; RBAC à faire |
 | 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
 

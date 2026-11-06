@@ -8,3 +8,4 @@ resources:
   - whoami.yaml
   - admission-policies.yaml
   - efs-storage.yaml
+  - monitoring.yaml

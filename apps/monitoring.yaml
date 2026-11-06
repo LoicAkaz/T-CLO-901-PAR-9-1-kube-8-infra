@@ -1,0 +1,154 @@
+# Sans Ingress tant que Grafana n'a pas de SSO (#52) : accès par port-forward.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://victoriametrics.github.io/helm-charts
+    chart: victoria-metrics-k8s-stack
+    targetRevision: 0.97.1
+    helm:
+      valuesObject:
+        fullnameOverride: vm
+        victoria-metrics-operator:
+          # certificat géré par cert-manager : celui généré par le chart changerait à chaque rendu
+          admissionWebhooks:
+            certManager:
+              enabled: true
+          # composants lourds sur le master, seul nœud à 8 Gio (ADR-0012)
+          nodeSelector: &master
+            node-role.kubernetes.io/control-plane: "true"
+          resources:
+            requests: {cpu: 20m, memory: 64Mi}
+            limits: {cpu: 200m, memory: 256Mi}
+        # le job de synchronisation reste sur le master : disques des workers limités
+        syncJob:
+          nodeSelector: *master
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 128Mi}
+        vmsingle:
+          spec:
+            retentionPeriod: 7d
+            nodeSelector: *master
+            storage:
+              storageClassName: local-path
+              resources:
+                requests:
+                  storage: 5Gi
+            resources:
+              requests: {cpu: 100m, memory: 256Mi}
+              limits: {cpu: "1", memory: 1Gi}
+        vmagent:
+          spec:
+            nodeSelector: *master
+            resources:
+              requests: {cpu: 50m, memory: 128Mi}
+              limits: {cpu: 500m, memory: 512Mi}
+        vmalert:
+          spec:
+            nodeSelector: *master
+            resources:
+              requests: {cpu: 20m, memory: 64Mi}
+              limits: {cpu: 200m, memory: 256Mi}
+        alertmanager:
+          spec:
+            nodeSelector: *master
+            resources:
+              requests: {cpu: 10m, memory: 32Mi}
+              limits: {cpu: 100m, memory: 128Mi}
+        grafana:
+          nodeSelector: *master
+          admin:
+            existingSecret: grafana-admin
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          sidecar:
+            resources:
+              requests: {cpu: 10m, memory: 64Mi}
+              limits: {cpu: 100m, memory: 128Mi}
+        kube-state-metrics:
+          nodeSelector: *master
+          resources:
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {cpu: 100m, memory: 128Mi}
+        prometheus-node-exporter:
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+        # k3s n'expose pas ces composants : désactiver retire aussi leurs règles et dashboards
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        # métriques du controller ArgoCD, sans lesquelles ArgoCDApplicationNotHealthy ne peut pas se déclencher
+        extraObjects:
+          - apiVersion: operator.victoriametrics.com/v1beta1
+            kind: VMPodScrape
+            metadata:
+              name: argocd-application-controller
+              namespace: monitoring
+            spec:
+              namespaceSelector:
+                matchNames: [argocd]
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: argocd-application-controller
+              podMetricsEndpoints:
+                - port: metrics
+        extraRules:
+          kube-platform:
+            groups:
+              - name: kube-platform
+                rules:
+                  - alert: NodeMemoryHigh
+                    expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85
+                    for: 10m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Mémoire au-dessus de 85 % sur {{ $labels.instance }}
+                  - alert: NodeRootDiskHigh
+                    expr: (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 > 80
+                    for: 10m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Disque racine au-dessus de 80 % sur {{ $labels.instance }}
+                  - alert: ArgoCDApplicationNotHealthy
+                    expr: argocd_app_info{health_status!="Healthy"} > 0
+                    for: 10m
+                    labels:
+                      severity: warning
+                    annotations:
+                      summary: Application ArgoCD {{ $labels.name }} en {{ $labels.health_status }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    # le job de synchronisation dépend du réseau : un échec ne doit pas rester bloqué
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
