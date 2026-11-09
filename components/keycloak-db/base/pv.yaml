@@ -17,5 +17,5 @@ spec:
     name: data-keycloak-db-0
   csi:
     driver: efs.csi.aws.com
-    # access point UID/GID 999, créé par un humain : remplacer fsap-A-REMPLACER avant le merge
-    volumeHandle: fs-081d9f48a078d2f28::fsap-A-REMPLACER
+    # access point UID/GID 999, racine /keycloak-db, créé par un humain
+    volumeHandle: fs-081d9f48a078d2f28::fsap-08e439954484ef372
