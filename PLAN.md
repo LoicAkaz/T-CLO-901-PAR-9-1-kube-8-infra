@@ -35,7 +35,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 - [x] ClusterIssuers `letsencrypt-staging` et `letsencrypt-prod` (écrits, sans adresse e-mail ACME)
 - [ ] `HelmChartConfig` Traefik
 - [ ] Ingress HTTPS d'ArgoCD : `argocd.<ip>.sslip.io`
-- [ ] Issuer staging par défaut ; l'issuer prod est réservé à dex et à la soutenance
+- [ ] Issuer staging par défaut ; prod pour Keycloak et dex (convention dans le `README.md`, section « TLS des outils ») ; `argocd`, `grafana` et `headlamp` en prod pour la soutenance
 - [ ] ValidatingAdmissionPolicies déployées en mode audit (`validationActions: [Warn, Audit]`) (écrites, à déployer)
 - [ ] Mesurer la mémoire consommée à ce stade et la comparer au budget
 
