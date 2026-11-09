@@ -42,7 +42,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 ## 4. Wave 2 — Fournisseur d'identité (M4)
 
 - [ ] PostgreSQL de Keycloak sur EFS
-- [ ] Keycloak : realm, clients, groupes `k8s-admins` / `k8s-viewers`
+- [ ] Keycloak : realm, clients, groupes `k8s-admins` / `k8s-viewers` (écrit, à déployer après #49 et #50)
 - [ ] Ingress HTTPS : `keycloak.<ip>.sslip.io`
 
 ## 5. Wave 3 — Fédération OIDC (M4)

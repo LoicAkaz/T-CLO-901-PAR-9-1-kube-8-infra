@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: identity
+resources:
+  - sealedsecret.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+configMapGenerator:
+  - name: keycloak-realm
+    files:
+      - realm-kube.json
+generatorOptions:
+  # nom stable : le realm n'est importé qu'à la création, un changement ne doit pas redémarrer Keycloak
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: kube-identity
