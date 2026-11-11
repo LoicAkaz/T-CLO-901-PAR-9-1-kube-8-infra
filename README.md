@@ -44,11 +44,31 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 |---|---|---|
 | 0 | cert-manager (CRDs inclus), Sealed Secrets, EFS CSI | Application écrite |
 | 1 | ClusterIssuers, config Traefik, StorageClass EFS | ClusterIssuers écrits ; StorageClass EFS statique écrite |
-| 2 | PostgreSQL Keycloak, Keycloak | Keycloak écrit ; PostgreSQL : PR dédiée |
+| 2 | PostgreSQL Keycloak, Keycloak | PostgreSQL et Keycloak écrits, à déployer |
 | 3 | dex | à faire |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | Métriques et alertes écrites, sans Ingress ni SSO ; le reste à faire |
 | 5 | Admission policies, RBAC | Policies écrites en mode audit ; RBAC à faire |
 | 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
+
+## TLS des outils
+
+Un certificat par Ingress (ADR-0024 du dépôt principal) : annotation `cert-manager.io/cluster-issuer`,
+`tls.hosts` et `secretName` du tableau. Pas de `Certificate` multi-SAN ni de `TLSStore`.
+
+| Hostname (`.56.228.56.225.sslip.io`) | Issuer | `secretName` |
+|---|---|---|
+| `keycloak` | `letsencrypt-prod` | `keycloak-tls` |
+| `dex` | `letsencrypt-prod` | `dex-tls` |
+| `argocd` | `letsencrypt-staging` | `argocd-tls` |
+| `grafana` | `letsencrypt-staging` | `grafana-tls` |
+| `headlamp` | `letsencrypt-staging` | `headlamp-tls` |
+
+- L'API server doit faire confiance à dex, et dex à Keycloak : ces deux hôtes exigent un certificat prod.
+  `argocd`, `grafana` et `headlamp` passent en prod pour la soutenance, un commit par Ingress.
+- **Un seul essai par hostname prod.** Le quota de `sslip.io` est partagé et ne se récupère pas : en cas de
+  `rateLimited`, pas de nouvel essai, on remonte le cas. Un revert vers staging ne rétablit pas l'OIDC
+  (repli : `PLAN.md` §7 du dépôt principal, M4-Q1). Plafond : 4 rebuilds par semaine.
+- Tout Ingress prod demande la validation d'une seconde personne avant le merge.
 
 ## Documentation
 

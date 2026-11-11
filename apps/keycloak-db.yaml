@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak-db
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  labels:
+    app.kubernetes.io/name: keycloak-db
+    app.kubernetes.io/part-of: kube-identity
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/LoicAkaz/T-CLO-901-PAR-9-1-kube-8-infra.git
+    targetRevision: main
+    path: components/keycloak-db/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: identity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # le CRD SealedSecret vient de la wave 0
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
