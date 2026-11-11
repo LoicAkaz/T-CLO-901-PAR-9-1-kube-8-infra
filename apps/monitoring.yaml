@@ -1,4 +1,3 @@
-# Sans Ingress tant que Grafana n'a pas de SSO (#52) : accès par port-forward.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -83,6 +82,32 @@ spec:
           nodeSelector: *master
           admin:
             existingSecret: grafana-admin
+          envFromSecret: grafana-oidc
+          grafana.ini:
+            server:
+              root_url: https://grafana.56.228.56.225.sslip.io
+            auth.generic_oauth:
+              enabled: "true"
+              name: SSO
+              allow_sign_up: "true"
+              client_id: grafana
+              client_secret: ${GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
+              scopes: openid profile email groups
+              auth_url: https://dex.56.228.56.225.sslip.io/auth
+              token_url: https://dex.56.228.56.225.sslip.io/token
+              api_url: https://dex.56.228.56.225.sslip.io/userinfo
+              role_attribute_path: contains(groups[*], 'k8s-admins') && 'Admin' || 'Viewer'
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-staging
+            hosts:
+              - grafana.56.228.56.225.sslip.io
+            tls:
+              - secretName: grafana-tls
+                hosts:
+                  - grafana.56.228.56.225.sslip.io
           resources:
             requests: {cpu: 50m, memory: 128Mi}
             limits: {cpu: 500m, memory: 512Mi}
@@ -123,6 +148,18 @@ spec:
                   app.kubernetes.io/name: argocd-application-controller
               podMetricsEndpoints:
                 - port: metrics
+          - apiVersion: bitnami.com/v1alpha1
+            kind: SealedSecret
+            metadata:
+              name: grafana-oidc
+              namespace: monitoring
+            spec:
+              encryptedData:
+                GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: AgCGapPchpBZN743X5cSkuEoiIdm+nhXkSsuyTW7sHFcnXYzo30iMtHbcPjfKRZvPSLSPvSN+a+IL7DkNFbLuHCHD8m739Idf6cg11tqPQVxpzi3ILiyoqEdcT7bDz36ATkhH2njATuzkPaDL2tQGVHgPnMkyJxfyBWKaGz9gkHhQOyM+P2BXjEHTdYfZEwKjw4Yw9Z9XibdoSPozM40rbefcEvsr6bv5VGgc8fyba7hRlguub843BWkzbLMsnr5Ih0rqzp/gIxuCW4BBWsaHypxKiAi5I0IRpSR39TulPIoeMsvPCyJ/hjr00xO0fd4nHszyDdFj1hfB0IFKmK4vbed9UiIhHzar/NQQ/3wd5BdpSL3Z6pB+LGF9cg/zglzqynYixbkoLMzo0v2upxYA2hPepPZYQG1nwuSUD/ov4IrlbyIycK6Y053lacUpR4hSH6q4XXE7yK61aJ0Qb2/fdsPBzIsLPaKEvKo39s/E5HxXMVdEYvewxVT09PLhVCFfB0/tmYXWGu7UVNYt736owpmn2hl1lebJ8JpdFc/Lbyb2kjEVe19U8kKFNqbaUdZMPLpEJY1V8jMsSBoAaY+I/RhvgXb9jFBLe3cujksXGbQcuKlDF9o7VcTPCXdSHfAoh1j72O6m0h2Ff2G8UT7JspqJ5EnC55rrVjyFOXwe+PT32xKV/dcp8EEaGonNdT6qyA=
+              template:
+                metadata:
+                  name: grafana-oidc
+                  namespace: monitoring
           # scellé pour le cluster partagé : déchiffrable uniquement par son contrôleur (ADR-0009)
           - apiVersion: bitnami.com/v1alpha1
             kind: SealedSecret
