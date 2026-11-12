@@ -1,6 +1,5 @@
-# Warning attendu sur le namespace whoami : traefik/whoami vient de docker.io (application de test, M3).
-# ghcr.io/ est temporairement plus large que l'ADR-0016 : l'owner GHCR et le registry de la BDD restent
-# à trancher (question Q2 du ticket #43 du dépôt principal).
+# Reste en Warn jusqu'à M5 : l'owner GHCR et le registry de la BDD restent à trancher (#43 du dépôt principal).
+# Warning attendu sur whoami : traefik/whoami vient de docker.io (application de test, M3).
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
@@ -9,7 +8,7 @@ metadata:
     app.kubernetes.io/name: admission-policies
     app.kubernetes.io/part-of: kube-platform
 spec:
-  # Ignore : une erreur de configuration ne doit jamais refuser une requête en mode audit.
+  # Ignore : reste en Warn, pas en Deny — une erreur ne doit pas bloquer.
   failurePolicy: Ignore
   matchConstraints:
     resourceRules:
@@ -26,7 +25,6 @@ spec:
         operations: [CREATE, UPDATE]
         resources: [jobs, cronjobs]
   # Évite les doublons : un objet créé par un contrôleur est contrôlé à travers son parent.
-  # À resserrer avant le Deny : une ownerReference quelconque suffit à exempter un objet.
   matchConditions:
     - name: not-controller-owned
       expression: "!has(object.metadata.ownerReferences)"
@@ -43,18 +41,34 @@ spec:
         variables.containers.all(c, ['ghcr.io/'].exists(p, c.image.startsWith(p)))
       message: Image hors des registries autorisés
 ---
+# Warn sur les namespaces enforced — restera en Warn jusqu'à M5 (Q4).
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: allowed-registries
+  name: allowed-registries-enforced
   labels:
     app.kubernetes.io/name: admission-policies
     app.kubernetes.io/part-of: kube-platform
 spec:
   policyName: allowed-registries
-  # Mode audit à M3 : le passage en Deny est une tâche de la wave 5 (M4).
   validationActions: [Warn, Audit]
   matchResources:
     namespaceSelector:
       matchLabels:
         policy.kube/enforced: "true"
+---
+# Warn sur les namespaces en essai.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: allowed-registries-audit
+  labels:
+    app.kubernetes.io/name: admission-policies
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  policyName: allowed-registries
+  validationActions: [Warn]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        policy.kube/audit: "true"

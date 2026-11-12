@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: admission-policies
     app.kubernetes.io/part-of: kube-platform
 spec:
-  # Ignore : une erreur de configuration ne doit jamais refuser une requête en mode audit.
-  failurePolicy: Ignore
+  # Fail : une erreur de CEL doit bloquer la requête en mode Deny (ADR-0016).
+  failurePolicy: Fail
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -23,7 +23,6 @@ spec:
         operations: [CREATE, UPDATE]
         resources: [jobs, cronjobs]
   # Évite les doublons : un objet créé par un contrôleur est contrôlé à travers son parent.
-  # À resserrer avant le Deny : une ownerReference quelconque suffit à exempter un objet.
   matchConditions:
     - name: not-controller-owned
       expression: "!has(object.metadata.ownerReferences)"
@@ -42,18 +41,34 @@ spec:
         c.?resources.?limits.?cpu.hasValue() && c.?resources.?limits.?memory.hasValue())
       message: Chaque conteneur doit définir requests et limits cpu et memory
 ---
+# Deny sur les namespaces enforced — opt-in par label uniquement (ADR-0016).
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: require-resources
+  name: require-resources-enforced
   labels:
     app.kubernetes.io/name: admission-policies
     app.kubernetes.io/part-of: kube-platform
 spec:
   policyName: require-resources
-  # Mode audit à M3 : le passage en Deny est une tâche de la wave 5 (M4).
-  validationActions: [Warn, Audit]
+  validationActions: [Deny]
   matchResources:
     namespaceSelector:
       matchLabels:
         policy.kube/enforced: "true"
+---
+# Warn sur les namespaces en essai — rollback : retirer le label du namespace.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: require-resources-audit
+  labels:
+    app.kubernetes.io/name: admission-policies
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  policyName: require-resources
+  validationActions: [Warn]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        policy.kube/audit: "true"

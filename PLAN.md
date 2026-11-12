@@ -62,8 +62,11 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 
 ## 7. Wave 5 — Sécurité (M4)
 
-- [ ] Passer les ValidatingAdmissionPolicies en refus (`Deny`), bindings `namespaceSelector policy.kube/enforced=true`, une fois les avertissements du mode audit corrigés
-  - Prérequis : `failurePolicy: Fail`, owner GHCR et registry BDD figés, image de `whoami` déplacée sur GHCR ou namespace retiré du label, filtre `ownerReferences` resserré (solveur HTTP-01 de cert-manager, opérateurs), objets en suppression exclus, conteneurs éphémères couverts, warnings relevés par `apiserver_validating_admission_policy_check_total` (ArgoCD ne les affiche pas)
+- [ ] Passer les ValidatingAdmissionPolicies en refus (`Deny`), bindings `namespaceSelector policy.kube/enforced=true` (écrit, à déployer — #59)
+  - `require-resources` et `require-labels` : Deny sur `enforced=true`, Warn sur `audit=true` ; `failurePolicy: Fail`
+  - `allowed-registries` : Warn jusqu'à M5 (Q4) — owner GHCR et registry BDD à trancher (#43)
+  - Namespaces en scope : `whoami` (enforced), `identity` (audit — à passer en enforced après zéro warning), `headlamp` (après #58)
+  - `monitoring`, `logging`, `argocd`, `kube-system` hors périmètre
 - [ ] ClusterRoleBindings sur les groupes OIDC
 - [ ] Vérifier `kubectl` via kubelogin pour un admin et un viewer
 
