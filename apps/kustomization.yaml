@@ -12,3 +12,5 @@ resources:
   - keycloak-db.yaml
   - keycloak.yaml
   - dex.yaml
+  - loki.yaml
+  - alloy.yaml

@@ -1,0 +1,116 @@
+# Dépend d'efs-storage (wave 1) : StorageClass efs-static et EFS CSI driver requis.
+# Dépend de monitoring (wave 4) : la datasource Loki est déclarée dans monitoring.yaml.
+# PV pré-créé via extraObjects (provisionnement statique EFS, ADR-0014).
+# auth_enabled: false : cluster privé, pas d'isolation multi-tenant.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: loki
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: loki
+    targetRevision: 7.6.0
+    helm:
+      valuesObject:
+        deploymentMode: SingleBinary
+        loki:
+          auth_enabled: false
+          storage:
+            type: filesystem
+          compactor:
+            retention_enabled: true
+            retention_period: 168h
+          limits_config:
+            retention_period: 168h
+          commonConfig:
+            replication_factor: 1
+          schemaConfig:
+            configs:
+              - from: "2024-01-01"
+                store: tsdb
+                object_store: filesystem
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+        singleBinary:
+          replicas: 1
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: "true"
+          persistence:
+            storageClass: efs-static
+            size: 10Gi
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+        # Désactivés : ces composants réservent plusieurs Gio pour memcached et sont inutiles en mono-binaire
+        chunksCache:
+          enabled: false
+        resultsCache:
+          enabled: false
+        gateway:
+          enabled: false
+        lokiCanary:
+          enabled: false
+        test:
+          enabled: false
+        minio:
+          enabled: false
+        backend:
+          replicas: 0
+        read:
+          replicas: 0
+        write:
+          replicas: 0
+        extraObjects:
+          # PV statique EFS — ID fs-081d9f48a078d2f28 (efs_filesystem_id dans Ansible).
+          # reclaimPolicy: Retain pour éviter toute perte de logs (ADR-0014).
+          - apiVersion: v1
+            kind: PersistentVolume
+            metadata:
+              name: loki-efs
+              labels:
+                app.kubernetes.io/name: loki
+                app.kubernetes.io/part-of: kube-platform
+            spec:
+              capacity:
+                storage: 10Gi
+              volumeMode: Filesystem
+              accessModes:
+                - ReadWriteMany
+              persistentVolumeReclaimPolicy: Retain
+              storageClassName: efs-static
+              csi:
+                driver: efs.csi.aws.com
+                volumeHandle: fs-081d9f48a078d2f28
+              claimRef:
+                name: storage-loki-0
+                namespace: logging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: logging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

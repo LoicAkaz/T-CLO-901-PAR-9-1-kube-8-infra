@@ -83,6 +83,12 @@ spec:
           admin:
             existingSecret: grafana-admin
           envFromSecret: grafana-oidc
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              url: http://loki.logging:3100
+              access: proxy
+              isDefault: false
           grafana.ini:
             server:
               root_url: https://grafana.56.228.56.225.sslip.io
