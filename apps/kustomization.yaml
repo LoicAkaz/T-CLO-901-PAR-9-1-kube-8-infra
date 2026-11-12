@@ -10,4 +10,5 @@ resources:
   - efs-storage.yaml
   - monitoring.yaml
   - keycloak-db.yaml
+  - keycloak.yaml
   - dex.yaml
