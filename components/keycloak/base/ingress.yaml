@@ -1,0 +1,28 @@
+# Certificat prod propre à Keycloak (ADR-0024) : dex doit lui faire confiance. Un seul essai.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: identity
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: kube-identity
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - keycloak.56.228.56.225.sslip.io
+      secretName: keycloak-tls
+  rules:
+    - host: keycloak.56.228.56.225.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak
+                port:
+                  name: http

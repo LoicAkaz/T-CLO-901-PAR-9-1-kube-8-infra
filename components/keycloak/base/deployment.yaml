@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: identity
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/part-of: kube-identity
+spec:
+  replicas: 1
+  # une version à la fois : les migrations de schéma ne supportent pas deux versions en parallèle
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/part-of: kube-identity
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: "true"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.8.2
+          args: [start, --import-realm]
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          env:
+            - {name: KC_DB, value: postgres}
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef: {name: keycloak-db, key: POSTGRES_DB}
+            - {name: KC_DB_URL, value: "jdbc:postgresql://keycloak-db:5432/$(POSTGRES_DB)"}
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef: {name: keycloak-db, key: POSTGRES_USER}
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: keycloak-db, key: POSTGRES_PASSWORD}
+            - {name: KC_HOSTNAME, value: "https://keycloak.56.228.56.225.sslip.io"}
+            - {name: KC_PROXY_HEADERS, value: xforwarded}
+            - {name: KC_HTTP_ENABLED, value: "true"}
+            - {name: KC_HEALTH_ENABLED, value: "true"}
+            - {name: JAVA_OPTS_KC_HEAP, value: "-XX:MaxRAMPercentage=65"}
+          # admin de bootstrap, secret du client dex et mots de passe de démo (placeholders du realm)
+          envFrom:
+            - secretRef:
+                name: keycloak
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests: {cpu: 100m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          # premier démarrage lent : build Quarkus, création du schéma et import du realm
+          startupProbe:
+            httpGet: {path: /health/started, port: management}
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: {path: /health/ready, port: management}
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health/live, port: management}
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: realm
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+      volumes:
+        - name: realm
+          configMap:
+            name: keycloak-realm
