@@ -1,0 +1,118 @@
+# Dépend de keycloak (wave 2) : Keycloak doit être prêt avant que dex tente le connecteur OIDC.
+# DEX_CONNECTOR_SECRET doit correspondre au DEX_CLIENT_SECRET scellé dans le composant keycloak.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    app.kubernetes.io/name: dex
+    app.kubernetes.io/part-of: kube-identity
+spec:
+  project: default
+  source:
+    repoURL: https://charts.dexidp.io
+    chart: dex
+    targetRevision: 0.26.0
+    helm:
+      valuesObject:
+        envFrom:
+          - secretRef:
+              name: dex-clients
+        config:
+          issuer: https://dex.56.228.56.225.sslip.io
+          storage:
+            type: kubernetes
+          connectors:
+            - type: oidc
+              id: keycloak
+              name: Keycloak
+              config:
+                issuer: https://keycloak.56.228.56.225.sslip.io/realms/kube
+                clientID: dex
+                clientSecret: $DEX_CONNECTOR_SECRET
+                scopes: [openid, profile, email, groups]
+                insecureEnableGroups: true
+                getUserInfo: true
+          staticClients:
+            - id: argocd
+              name: ArgoCD
+              secret: $ARGOCD_CLIENT_SECRET
+              redirectURIs:
+                - https://argocd.56.228.56.225.sslip.io/auth/callback
+            - id: grafana
+              name: Grafana
+              secret: $GRAFANA_CLIENT_SECRET
+              redirectURIs:
+                - https://grafana.56.228.56.225.sslip.io/login/generic_oauth
+            - id: headlamp
+              name: Headlamp
+              secret: $HEADLAMP_CLIENT_SECRET
+              redirectURIs:
+                - https://headlamp.56.228.56.225.sslip.io/oidc-callback
+            - id: kubernetes
+              name: Kubernetes CLI
+              public: true
+              trustedPeers: [headlamp]
+              redirectURIs:
+                - http://localhost:8000
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+          hosts:
+            - host: dex.56.228.56.225.sslip.io
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - secretName: dex-tls
+              hosts:
+                - dex.56.228.56.225.sslip.io
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        # composants de la plateforme sur le master : seul nœud à 8 Gio (ADR-0012)
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: "true"
+        extraObjects:
+          # Scellé pour le cluster partagé : déchiffrable uniquement par son contrôleur (ADR-0009).
+          # DEX_CONNECTOR_SECRET doit correspondre à DEX_CLIENT_SECRET dans le composant keycloak.
+          - apiVersion: bitnami.com/v1alpha1
+            kind: SealedSecret
+            metadata:
+              name: dex-clients
+              namespace: identity
+            spec:
+              encryptedData:
+                ARGOCD_CLIENT_SECRET: AgDUxyxgjoIKTTmQ4WKaeGaKP+Fp/I304KXNC6gzmHjjZaubKdMH3odO/vPi02QYp0L8ZN2s1AJHGjAWowAuJJ30UU5BgDrwFikoTjZJtLD6Y5Ip5x774eUJ/YbvqYW7zLtjDhOiMg2UpEpmGaCvg0ymSUicKfymU3bKfViB3g139JzG6EPRkUji5sFGbEj4EsKFs55WjtanNO0yPNFVhYEt0RGeU3/Z4A2pi2sV6/mcEHj6eWEWNlnfYawDEGq8AVa78VnLgXkPd/UnejfYVoHFnmbYVzX64+bjZVUuAd/TgsceZuey1AtXJ3nzH4afVDfKCuzpjIYkIgU/dYWjCOy/DXLyvsbV8cq3wqmHymqz+3KLdU2R3ypLbgadja/KZWKFisIB1zgM2mqShOsG8In/bjkPYB2WnurblHn2DCSob7MOZGxUrPQziccbkPF1n33LUpOf0WCfqY64V81a9mX8Ld60Mg4+7Vr8xGlfLkCx0I7KcKbO0Jffo+k6j/mf4o7hiMow4EbWD1QSD0Nakz3bOi83S5NRe2DzVMSyGbWcRi40mBHIDM/+PzMEO1GC0NUL6Cxr43LoeouZra64R1iYqqh2+zBGu3L82VQZ1yKb+fY8waIZtRYc1cpiaPn1DKcc87ts51Bv/60I4kHqqf73FNjxqx5XDo/YiTqaz/HwJ95/yWE4uRigDBF4nI6IhhE=
+                DEX_CONNECTOR_SECRET: AgCH2fAkopCNsGbpNd276NaCgPZmhLQ5FW8rG4609aCEWCxBpmzsqT94voHniVx3gsYUIky+5XZye8qh/ewlEaa3rhcNPHCRBDCPjwYbLCJgpZ4OGovzUKhZCIZDnEFe6IOWV3+t6SUqFpr4Z3uMUPihK06H4qTCB5Ix4BXH2fct32nLCHFQbElORGPojXOk0ZiH1L2U3tGr/1DXdKQ9zxBnGCfbzQX4oVP63oQ5DzjnH9SL4LDSQ1JjBLUaazAzw1yeZ+r5SI7AGIQ+Z+HRVAqzvNHyEPONGIbb5HL6Ujx8wY4aLid0XmzBboGj6c+d5lGlTK83BnJM5hSvwzI5vEAJpve5GJGGGtod98yiRPKx7KITeXhHiw8ak8b5IFxm0tBFxHhExIrbyk8ot5DNiN7kahLoBNS+Rs16vzhErBsG3vtX5hx4qkEjS4FlL//JOfke9cFx0nd2ax5TCEVa+4nYT92A4HJDju+D0AiPupUrlWmM5nXEJQajvOkFxM10UJyeRq/mYXBUsWcyBpBqfzLyhzk7VIOHt84JxGtPKnUi55/S1SBN7RRkH/ErrIKD8cxP9H+DoS0uD4QJ0fyD3XE9PAt/ZbPKybO43pFu6EkiAw6KsCyvoKoRdEFt17aoDxc7Nqu05MZwdvQk3cnXkhBcogfsj0X4h04lAUSr3CzP+RKYQfD6nTaKXqQqv2dozxnuBqge6CW1+WRLv0YgGNceWzjRzFGw/POfH585mp2rJ2PPDWmkuZGi6O98ww==
+                GRAFANA_CLIENT_SECRET: AgCopUG+bm3ne8w8ABxTJlIbgbiFRsojhR9EmPJl1Ot1+K1ntAmNa3QC/ntxMGEsMA/osTsPc1vbkNlVnna++oCOm7rC44+wy+JQft4wRBppZEHtLHDmoft34tOgAU2Gt0GQHnZLIWA18/mMCIgnBTb71FgVpmSUD9cffymfyHugVoSsuO+Sv6zlDjLeX8F+kz1kaJLC1ZWcSXHA+CoxmTT/k6+V92g50cLmGHgPBhwna5jiSwkWKOHTOJkCovvJKv6Y/yWPC64LXyd5k1PsAdbXwgQSnogo9Bxe2iDpa0Jq1NOPtAQ9GislPyalik5c2mz4Mbj5t9gXjAuTbB86XYqFEQj+sRrQiLnKb4ytiVQwWh7DO7iObKf6jdUUSGVpT1zZGOMxmN7J31kLhB7WB2SakXV07/UqZDivmSrmFx9QzSE0/HRk8K30mxtBbTcx8d685Q3ub6G1/o6qlxXlaCM7ARkFbSF743uA6Zfh/GlKU0evh3vS7ys18ukpZbV/aurrxNfxTa1NUe0jWM3UL7tXEmLBBVexHApczSdsCtiezEDoFFLpPYCHFWkndmnF26cTkt8E1gWulkX7wWBDfudIy5TvITpPSXuTgehVvXxoCiavhCwrfMsdPQo/aP+ooF5+PLRnqCS7AxV7WlM6q1fZi5BXEBOtZVxeAFzttgkoZO1T6DMBiG6YScz36cCmJOo=
+                HEADLAMP_CLIENT_SECRET: AgCY1pbqI9XBqUzG296jy3Rw6XSSkVByK6bAe/bskbcwP+37yW5EP8t0kV5ajouaEx+RUMo9bgok9dtYuTSqr7t3TBG9e/GTch94Q1rmBwVD0nwJn+ZoMT/qrYl/1xHUfMDUMnlvK8jXyE7BTtD1lgvLdK7JDaxMQrpwUX/fcyDid01OjiXkUXb0RdL+iWI/Q+mSG8MQrjquAsf74sdFm0NACmMiwoAIxUu0JB4dMdV3m0Er+fkNLCM3Acy2dgKhSsID+mbA3/FkDSWTqUGYdLEDyRYsZdXwNjr60MUTCXXiHj9JEGMYg2uwhgjxE5eO492LcFBVzmaqA8GIt1kA7wpuVcWXn8QllvP6pHZ4mZtC56b1nzF5ZK+VBBBOQ8EJ94yFWLD4cpPYcFow7FJqIlQd6306bGKGZyxFWNu/7ZTNYXBHvnfmvnIi6n8nhQ8Oy0jOJx/fIfZXGc1YCNO0Ykb+9xiEiiOjCyLPUTu9ohKV9bkZv8pa6q5+JjwpEa/2QNP8jG0A0DYrr3/4ANrp3vmog/xL5ryrz+PJNoBStRR3pn0CM75I44tVlcg38Qmd8aor3nGimRB7u7BqeyvBxBR5gjADFZzRbWWu7bfbUtGBrEuOgLmoTfIc9hQQhApDSNJupPTRs0N4eNLYqjH80zRMCRdljZ1v1yNtyS9hJo2TovwTLEhBdln8T7iM/lxqU6w=
+              template:
+                metadata:
+                  name: dex-clients
+                  namespace: identity
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: identity
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
