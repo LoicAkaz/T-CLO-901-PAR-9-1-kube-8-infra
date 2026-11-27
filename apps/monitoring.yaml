@@ -161,7 +161,7 @@ spec:
               namespace: monitoring
             spec:
               encryptedData:
-                GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: AgCGapPchpBZN743X5cSkuEoiIdm+nhXkSsuyTW7sHFcnXYzo30iMtHbcPjfKRZvPSLSPvSN+a+IL7DkNFbLuHCHD8m739Idf6cg11tqPQVxpzi3ILiyoqEdcT7bDz36ATkhH2njATuzkPaDL2tQGVHgPnMkyJxfyBWKaGz9gkHhQOyM+P2BXjEHTdYfZEwKjw4Yw9Z9XibdoSPozM40rbefcEvsr6bv5VGgc8fyba7hRlguub843BWkzbLMsnr5Ih0rqzp/gIxuCW4BBWsaHypxKiAi5I0IRpSR39TulPIoeMsvPCyJ/hjr00xO0fd4nHszyDdFj1hfB0IFKmK4vbed9UiIhHzar/NQQ/3wd5BdpSL3Z6pB+LGF9cg/zglzqynYixbkoLMzo0v2upxYA2hPepPZYQG1nwuSUD/ov4IrlbyIycK6Y053lacUpR4hSH6q4XXE7yK61aJ0Qb2/fdsPBzIsLPaKEvKo39s/E5HxXMVdEYvewxVT09PLhVCFfB0/tmYXWGu7UVNYt736owpmn2hl1lebJ8JpdFc/Lbyb2kjEVe19U8kKFNqbaUdZMPLpEJY1V8jMsSBoAaY+I/RhvgXb9jFBLe3cujksXGbQcuKlDF9o7VcTPCXdSHfAoh1j72O6m0h2Ff2G8UT7JspqJ5EnC55rrVjyFOXwe+PT32xKV/dcp8EEaGonNdT6qyA=
+                GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: AgB7ed5GjBoXwlIllT+HOV5NxpdMuEa5j3Xp9fqaFuYFeRX6Lj28lCRhQ50exqwypV7ARBkHCRugCdYRzKFctUMT27ebbGAB2SPtr/uY/i6CUhPswJrByHOLR5mEsjO4EluKLc+Q/wEPR/95VL7q+d8IWnBD31shUrhWrhc7RgGAt4KKqElbeMi8+KP/EWc326o24e9DJhv4Swzi4Tg4dkKDpFB8WVFyyv+FidrfM1IGhCtPMuFJhpYeq9jsOBsvmi/DFvs7H5qDgjqqAk4+joYfV/nVjVisVu3Ff541sY0o6/2/aQf17/qzx1tr9m1fBHCoidq/qlRqwGblWgUlCudEwz+aBzNvyy6G4kQ15b75cMeXJlotXN2p9kNQGZYnh3vdLp3yaPol+U/DpVq01dWLtgtH88cT18xN5QrzGXEK11CEfvR0er+zkLOLwE0B1zQ9/v8smMA1Mv0VWLevpSZCPbAe6lzwv+F/zbF+B652rNco3lQ7MBvcQUzSAE5LRnkF/78cP6FeHTda6VluS5vf3IQnFkL8/Su/pww58NlxJM7BgyS7oWL6hcUigVi8KU2gq43Ar4qWEDnZ27fMUw1bZ5gijay8q4Y2nwICD/xuO0y0HqiMuRyoMgS6K76476Ifs0eQQDefYfoY3xnxSXuSfpY4h1jXn7DNRNDyFUxie5Vg+y9ABs09nW6Q8NF5qjFV5nr+zReVff6LlqQ+/v3Iyij7Tb+Qi+xD/Q3Vq83GOktdgXogWdgcW/56
               template:
                 metadata:
                   name: grafana-oidc
