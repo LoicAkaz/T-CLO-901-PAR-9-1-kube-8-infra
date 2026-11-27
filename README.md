@@ -47,7 +47,7 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 | 2 | PostgreSQL Keycloak, Keycloak | PostgreSQL et Keycloak écrits, à déployer |
 | 3 | dex | à faire |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | Métriques et alertes écrites, sans Ingress ni SSO ; le reste à faire |
-| 5 | Admission policies, RBAC | Policies écrites en mode audit ; RBAC à faire |
+| 5 | Admission policies, RBAC | `require-resources` et `require-labels` en Deny, `allowed-registries` en Warn ; RBAC OIDC écrit |
 | 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
 
 ## TLS des outils

@@ -15,3 +15,4 @@ resources:
   - argocd.yaml
   - loki.yaml
   - alloy.yaml
+  - rbac.yaml
