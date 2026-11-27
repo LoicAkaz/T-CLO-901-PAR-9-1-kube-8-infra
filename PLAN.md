@@ -67,7 +67,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
   - `allowed-registries` : Warn jusqu'à M5 (Q4) — owner GHCR et registry BDD à trancher (#43)
   - Namespaces en scope : `whoami` (enforced), `identity` (audit — à passer en enforced après zéro warning), `headlamp` (après #58)
   - `monitoring`, `logging`, `argocd`, `kube-system` hors périmètre
-- [ ] ClusterRoleBindings sur les groupes OIDC
+- [x] ClusterRoleBindings sur les groupes OIDC (`components/rbac` : `cluster-admin` et `view`)
 - [ ] Vérifier `kubectl` via kubelogin pour un admin et un viewer
 
 ## 8. Wave 6 — Raccordement de l'application
