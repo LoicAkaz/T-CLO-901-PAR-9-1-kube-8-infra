@@ -42,17 +42,17 @@ spec:
           staticClients:
             - id: argocd
               name: ArgoCD
-              secret: $ARGOCD_CLIENT_SECRET
+              secretEnv: ARGOCD_CLIENT_SECRET
               redirectURIs:
                 - https://argocd.56.228.56.225.sslip.io/auth/callback
             - id: grafana
               name: Grafana
-              secret: $GRAFANA_CLIENT_SECRET
+              secretEnv: GRAFANA_CLIENT_SECRET
               redirectURIs:
                 - https://grafana.56.228.56.225.sslip.io/login/generic_oauth
             - id: headlamp
               name: Headlamp
-              secret: $HEADLAMP_CLIENT_SECRET
+              secretEnv: HEADLAMP_CLIENT_SECRET
               redirectURIs:
                 - https://headlamp.56.228.56.225.sslip.io/oidc-callback
             - id: kubernetes
