@@ -25,6 +25,8 @@ spec:
           issuer: https://dex.56.228.56.225.sslip.io
           storage:
             type: kubernetes
+            config:
+              inCluster: true
           connectors:
             - type: oidc
               id: keycloak
