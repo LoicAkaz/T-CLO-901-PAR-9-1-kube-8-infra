@@ -57,7 +57,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 - [ ] SSO ArgoCD via dex + RBAC ArgoCD par groupe (écrit, à déployer — #55)
 - [ ] VictoriaMetrics k8s stack + Grafana (OIDC) + règles d'alerte, `grafana.<ip>.sslip.io` (Ingress et SSO écrits, à déployer — #56)
 - [ ] Loki monolithique (EFS) + Alloy
-- [ ] Headlamp (OIDC), `headlamp.<ip>.sslip.io`
+- [x] Headlamp (OIDC), `headlamp.<ip>.sslip.io` (chart 0.46.0, `apps/headlamp.yaml`)
 - [ ] Dashboards : nœuds, ressources par namespace, Traefik, ArgoCD
 
 ## 7. Wave 5 — Sécurité (M4)
@@ -65,7 +65,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 - [ ] Passer les ValidatingAdmissionPolicies en refus (`Deny`), bindings `namespaceSelector policy.kube/enforced=true` (écrit, à déployer — #59)
   - `require-resources` et `require-labels` : Deny sur `enforced=true`, Warn sur `audit=true` ; `failurePolicy: Fail`
   - `allowed-registries` : Warn jusqu'à M5 (Q4) — owner GHCR et registry BDD à trancher (#43)
-  - Namespaces en scope : `whoami` (enforced), `identity` (audit — à passer en enforced après zéro warning), `headlamp` (après #58)
+  - Namespaces en scope : `whoami` (enforced), `identity` (audit — à passer en enforced après zéro warning), `headlamp` (audit)
   - `monitoring`, `logging`, `argocd`, `kube-system` hors périmètre
 - [x] ClusterRoleBindings sur les groupes OIDC (`components/rbac` : `cluster-admin` et `view`)
 - [ ] Vérifier `kubectl` via kubelogin pour un admin et un viewer
