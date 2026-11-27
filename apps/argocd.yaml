@@ -1,0 +1,137 @@
+# ArgoCD se gère depuis Git (ADR-0019). Version figée = argocd_chart_version dans Ansible.
+# prune: false : ArgoCD ne supprime pas ses propres ressources de bootstrap.
+# Dépend de dex (wave 3) : l'issuer OIDC doit être disponible avant la reconfiguration.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://argoproj.github.io/argo-helm
+    chart: argo-cd
+    targetRevision: 10.10.5
+    helm:
+      valuesObject:
+        dex:
+          enabled: false
+        notifications:
+          enabled: false
+        configs:
+          params:
+            server.insecure: "true"
+          cm:
+            url: https://argocd.56.228.56.225.sslip.io
+            oidc.config: |
+              name: SSO
+              issuer: https://dex.56.228.56.225.sslip.io
+              clientID: argocd
+              clientSecret: $argocd-oidc:clientSecret
+              requestedScopes:
+                - openid
+                - profile
+                - email
+                - groups
+          rbac:
+            policy.default: "role:''"
+            policy.csv: |
+              g, k8s-admins, role:admin
+              g, k8s-viewers, role:readonly
+        server:
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            annotations:
+              cert-manager.io/cluster-issuer: letsencrypt-staging
+            hostname: argocd.56.228.56.225.sslip.io
+            tls: true
+            extraTls:
+              - hosts:
+                  - argocd.56.228.56.225.sslip.io
+                secretName: argocd-tls
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          nodeSelector: &master
+            node-role.kubernetes.io/control-plane: "true"
+        controller:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          nodeSelector: *master
+        repoServer:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          nodeSelector: *master
+        applicationSet:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          nodeSelector: *master
+        redis:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          nodeSelector: *master
+        extraObjects:
+          # Scellé pour ce cluster (ADR-0009). clientSecret doit correspondre à
+          # ARGOCD_CLIENT_SECRET dans le SealedSecret dex-clients du namespace identity.
+          - apiVersion: bitnami.com/v1alpha1
+            kind: SealedSecret
+            metadata:
+              name: argocd-oidc
+              namespace: argocd
+              labels:
+                app.kubernetes.io/part-of: argocd
+            spec:
+              encryptedData:
+                clientSecret: AgAp8lxQR08hfZeRXgsRk6kShMkPXAdAEfbrpe8iD2GOrT4Ic/4zheQOw9oapdoDsq9wS68LXhPggk7pueW/uAIGwJmRqmlN0Z6h5aY/bwWa4AEslh5/waWunaspfUugzzc/7lnZEWRXRPehkIIIucqWvAZyc2VVki5BjI8bD/ucz9yA4P9t4D7i40BCKqf+tLz5hmFAiZXqQk2k+GvpuVbfmUALiehdP+x9/+qsweX2R3XIQxyE5uMiUZmE0t2EdCKNACmaXnezfxLONVjIG6WMfnanE5Qvh9Y4hXJQ6qd7YFKP4Hk245VeSyIl5kBABYTsc6gxN746cTh+8IxUHM/PRVtff+nte8k2tKF0+SIS8z6yZ+PzLz7IeoXM9F8X0NLw1LM5Lhu1taiB4r8uj2vwC8sl05rQwUKFztBXllw2bCakrnAp3vpuOSB1R6Bmrd1FhZ9YvOMyUnbPAJAEHDxTu6NREF2w3O2TD5HI+FPvhsNOL3RSidVwNnrEe0reu0GijXehncsxEW061GJZfgNauGaFxbMfHGMgqySRlycoP0e9jdFDklF+Gu093k+3rZ/rUcqsQl6rTAsFy35hI3NrBwk8IxsS07v1VXuMjUfEjx8mX1su9A/RHsz0jxc0elNfxB1DP6qvBjxUxJnkXj/RhN5UQ6yL00D3E6K9m9PTSCha0wXLlAVjLnWg9/adJu2C3ynCr33q4kKdsC5TPQZUUkQhlPpHXVdqTHeHh/jm4HFKXSSdbxOQrjMuNQ==
+              template:
+                metadata:
+                  name: argocd-oidc
+                  namespace: argocd
+                  labels:
+                    app.kubernetes.io/part-of: argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

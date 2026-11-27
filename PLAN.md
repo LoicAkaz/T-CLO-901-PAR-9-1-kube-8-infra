@@ -56,7 +56,7 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 
 - [ ] SSO ArgoCD via dex + RBAC ArgoCD par groupe (écrit, à déployer — #55)
 - [ ] VictoriaMetrics k8s stack + Grafana (OIDC) + règles d'alerte, `grafana.<ip>.sslip.io` (Ingress et SSO écrits, à déployer — #56)
-- [ ] Loki monolithique (EFS) + Alloy (écrit, à déployer — #57)
+- [ ] Loki monolithique (EFS) + Alloy
 - [ ] Headlamp (OIDC), `headlamp.<ip>.sslip.io`
 - [ ] Dashboards : nœuds, ressources par namespace, Traefik, ArgoCD
 
