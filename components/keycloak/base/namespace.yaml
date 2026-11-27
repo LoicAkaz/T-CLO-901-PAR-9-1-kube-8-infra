@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: identity
+  labels:
+    app.kubernetes.io/name: identity
+    app.kubernetes.io/part-of: kube-identity
+    # audit=true : les policies sont en mode Warn sur ce namespace (#59).
+    # Passer à enforced=true après zéro warning confirmé dans apiserver_validating_admission_policy_check_total.
+    policy.kube/audit: "true"
