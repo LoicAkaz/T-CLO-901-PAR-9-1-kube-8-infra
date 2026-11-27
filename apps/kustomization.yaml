@@ -15,4 +15,5 @@ resources:
   - argocd.yaml
   - loki.yaml
   - alloy.yaml
+  - headlamp.yaml
   - rbac.yaml

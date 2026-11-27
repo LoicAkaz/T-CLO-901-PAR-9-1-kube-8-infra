@@ -1,0 +1,105 @@
+# Dashboard (ADR-0011). Dépend de dex (wave 3) et des flags OIDC de l'API server (Ansible, rôle k3s_server).
+# Le ServiceAccount du chart n'a aucun droit : chaque action utilise le jeton de l'utilisateur.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: headlamp
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  labels:
+    app.kubernetes.io/name: headlamp
+    app.kubernetes.io/part-of: kube-platform
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/headlamp/
+    chart: headlamp
+    targetRevision: 0.46.0
+    helm:
+      valuesObject:
+        # le chart lie cluster-admin au ServiceAccount par défaut
+        clusterRoleBinding:
+          create: false
+        config:
+          oidc:
+            secret:
+              create: false
+            externalSecret:
+              enabled: true
+              name: headlamp-oidc
+              hasScopes: true
+            callbackURL: https://headlamp.56.228.56.225.sslip.io/oidc-callback
+        ingress:
+          enabled: true
+          ingressClassName: traefik
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-staging
+          hosts:
+            - host: headlamp.56.228.56.225.sslip.io
+              paths:
+                - path: /
+                  type: Prefix
+          tls:
+            - secretName: headlamp-tls
+              hosts:
+                - headlamp.56.228.56.225.sslip.io
+        podLabels:
+          app.kubernetes.io/part-of: kube-platform
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        # sur un worker : le disque du master est proche du seuil de 70 % (ADR-0025)
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: DoesNotExist
+        extraManifests:
+          # Scellé pour ce cluster (ADR-0009). OIDC_CLIENT_SECRET = HEADLAMP_CLIENT_SECRET de dex-clients.
+          # L'audience « kubernetes » (trustedPeers dans dex) fait accepter le jeton par l'API server.
+          - |
+            apiVersion: bitnami.com/v1alpha1
+            kind: SealedSecret
+            metadata:
+              name: headlamp-oidc
+              namespace: headlamp
+            spec:
+              encryptedData:
+                OIDC_CLIENT_SECRET: AgBbPE/hN8IpIDBf7wFnCMCRimeqMn9zmcmNj0B3Mrr80sBTNflcmK277u1aGwU7mTXiFjWYUbq6/0JadChmSgLPVszitHM/bCIrwRp9N1VARdTtmRc+IRf1tQ2TjwUyNiJXuzWn91BBEC2Y3EYiui2KrHCpEptsAj7pA6u9SlI9ZOgWQFcsrqjMN50r9jbLs0IrGuIYT3LhpExDWqmaG5FtUmQ4guqWAadKtWWfJGbhTwMbU9uyy9gt9s5mWLDTJHqG1Df/r9zzfzEtk7vgA967Yh+nXHkGp+conty0k+AHZNnwoffglashHFOmtToa6eT1SjSX0ks6mjzpjr2HMxQcv2d03CtDsR3uKP+vDFLDxZ8Id3UYJDpjEpd3qwV5+dWa98cd6/wQ8ZY8EKD3vPj1SUFthltxzTMRKGPmET5C5iueZxQwROHbEAQbcAGf6kw2bJPudNkgsGqbrM31iillJrXPchAF4+CwROwzbuvUWRgFMlQ4MvuFpHO9ulcXWhEuRMHOooxci75edubxFK0UkwriN/nU+MxZq75Z0DqAoXrIGbkO/En+RMiy/5BSEfV+TEvlWomrsLvyyxEHnW2qu52Po9Ps4mGIKOKk6xVlnwCC/bupfqW8dkXLiIWjEZufD/pban/4MW1PKfBcw9E2yQVypvp2ckWKHaEOQJC6A/a3qVl9pngvy8ZaRUCUVe9GhxgiRRR6rv5+L4KOoXK8Va5S3DtPoiY4HW+vYGbmQBZx2zbUK4xxTjcE
+              template:
+                metadata:
+                  name: headlamp-oidc
+                  namespace: headlamp
+                data:
+                  OIDC_CLIENT_ID: headlamp
+                  OIDC_ISSUER_URL: https://dex.56.228.56.225.sslip.io
+                  OIDC_SCOPES: profile,email,groups,audience:server:client_id:kubernetes,audience:server:client_id:headlamp
+                  OIDC_CALLBACK_URL: https://headlamp.56.228.56.225.sslip.io/oidc-callback
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: headlamp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    managedNamespaceMetadata:
+      labels:
+        app.kubernetes.io/name: headlamp
+        app.kubernetes.io/part-of: kube-platform
+        # Warn seulement : le chart ne permet pas de poser les labels sur le Deployment
+        policy.kube/audit: "true"
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
