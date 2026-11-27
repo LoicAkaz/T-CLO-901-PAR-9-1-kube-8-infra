@@ -41,6 +41,10 @@ spec:
             - secretRef:
                 name: keycloak-db
           securityContext:
+            # le profil AppArmor des conteneurs d'Ubuntu 26.04 refuse les signaux entre processus postgres :
+            # la reprise après un arrêt brutal échoue (could not signal for checkpoint)
+            appArmorProfile:
+              type: Unconfined
             allowPrivilegeEscalation: false
             capabilities:
               drop:
