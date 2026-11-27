@@ -34,6 +34,7 @@ spec:
               config:
                 issuer: https://keycloak.56.228.56.225.sslip.io/realms/kube
                 clientID: dex
+                redirectURI: https://dex.56.228.56.225.sslip.io/callback
                 clientSecret: $DEX_CONNECTOR_SECRET
                 scopes: [openid, profile, email, groups]
                 insecureEnableGroups: true
