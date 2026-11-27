@@ -42,23 +42,23 @@ Migré depuis `platform/PLAN.md` du dépôt principal (ADR-0020). Jalons et cont
 ## 4. Wave 2 — Fournisseur d'identité (M4)
 
 - [ ] PostgreSQL de Keycloak sur EFS (écrit sur PV statique, à déployer)
-- [ ] Keycloak : realm, clients, groupes `k8s-admins` / `k8s-viewers` (écrit, à déployer après #49 et #50)
-- [ ] Ingress HTTPS : `keycloak.<ip>.sslip.io`
+- [x] Keycloak : realm, clients, groupes `k8s-admins` / `k8s-viewers` (connexion des deux utilisateurs de démo vérifiée le 2026-11-27)
+- [x] Ingress HTTPS : `keycloak.<ip>.sslip.io`
 
 ## 5. Wave 3 — Fédération OIDC (M4)
 
-- [ ] dex : connecteur OIDC Keycloak
-- [ ] Clients statiques ArgoCD, Grafana, Headlamp, kubectl
-- [ ] Ingress HTTPS `dex.<ip>.sslip.io` avec **certificat prod**
+- [x] dex : connecteur OIDC Keycloak
+- [x] Clients statiques ArgoCD, Grafana, Headlamp, kubectl (secrets lus par `secretEnv`)
+- [x] Ingress HTTPS `dex.<ip>.sslip.io` avec **certificat prod**
 - [ ] Vérifier que l'issuer et le client-id correspondent aux flags k3s posés par Ansible
 
 ## 6. Wave 4 — Outils (M4)
 
-- [ ] SSO ArgoCD via dex + RBAC ArgoCD par groupe (écrit, à déployer — #55)
-- [ ] VictoriaMetrics k8s stack + Grafana (OIDC) + règles d'alerte, `grafana.<ip>.sslip.io` (Ingress et SSO écrits, à déployer — #56)
-- [ ] Loki monolithique (EFS) + Alloy
-- [x] Headlamp (OIDC), `headlamp.<ip>.sslip.io` (chart 0.46.0, `apps/headlamp.yaml`)
-- [ ] Dashboards : nœuds, ressources par namespace, Traefik, ArgoCD
+- [x] SSO ArgoCD via dex + RBAC ArgoCD par groupe (vérifié le 2026-11-27)
+- [x] VictoriaMetrics k8s stack + Grafana (OIDC) + règles d'alerte, `grafana.<ip>.sslip.io` (SSO et datasources vérifiés le 2026-11-27)
+- [x] Loki monolithique (EFS) + Alloy
+- [x] Headlamp (OIDC), `headlamp.<ip>.sslip.io` (chart 0.46.0 ; appels API à vérifier après les flags OIDC de k3s)
+- [ ] Dashboards : Traefik et ArgoCD (nœuds et ressources par namespace fournis par la stack ; métriques Traefik non collectées)
 
 ## 7. Wave 5 — Sécurité (M4)
 

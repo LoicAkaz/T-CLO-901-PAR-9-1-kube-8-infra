@@ -44,8 +44,8 @@ chart figée dans `targetRevision`. Un composant fait de manifests a son dossier
 |---|---|---|
 | 0 | cert-manager (CRDs inclus), Sealed Secrets, EFS CSI | Application écrite |
 | 1 | ClusterIssuers, config Traefik, StorageClass EFS | ClusterIssuers écrits ; StorageClass EFS statique écrite |
-| 2 | PostgreSQL Keycloak, Keycloak | PostgreSQL et Keycloak écrits, à déployer |
-| 3 | dex | à faire |
+| 2 | PostgreSQL Keycloak, Keycloak | déployés |
+| 3 | dex | déployé |
 | 4 | SSO ArgoCD, monitoring, logging, Headlamp | Écrits et déployés |
 | 5 | Admission policies, RBAC | `require-resources` et `require-labels` en Deny, `allowed-registries` en Warn ; RBAC OIDC écrit |
 | 6 | Application de test `whoami` (M3), puis Application → dépôt applicatif | `whoami` écrite ; dépôt applicatif à faire |
