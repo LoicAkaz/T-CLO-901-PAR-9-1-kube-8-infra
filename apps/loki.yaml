@@ -27,7 +27,7 @@ spec:
             type: filesystem
           compactor:
             retention_enabled: true
-            retention_period: 168h
+            delete_request_store: filesystem
           limits_config:
             retention_period: 168h
           commonConfig:

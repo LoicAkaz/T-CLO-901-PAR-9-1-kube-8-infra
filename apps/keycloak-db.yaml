@@ -22,6 +22,8 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
+      # le namespace identity est déclaré par keycloak, qui peut être synchronisée après
+      - CreateNamespace=true
       # le CRD SealedSecret vient de la wave 0
       - SkipDryRunOnMissingResource=true
     retry:
