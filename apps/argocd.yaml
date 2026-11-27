@@ -71,7 +71,8 @@ spec:
               memory: 256Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              # 512Mi : controller tué en boucle (OOMKilled) avec toute la plateforme déployée
+              memory: 1Gi
           nodeSelector: *master
         repoServer:
           resources:
@@ -112,7 +113,7 @@ spec:
                 app.kubernetes.io/part-of: argocd
             spec:
               encryptedData:
-                clientSecret: AgAp8lxQR08hfZeRXgsRk6kShMkPXAdAEfbrpe8iD2GOrT4Ic/4zheQOw9oapdoDsq9wS68LXhPggk7pueW/uAIGwJmRqmlN0Z6h5aY/bwWa4AEslh5/waWunaspfUugzzc/7lnZEWRXRPehkIIIucqWvAZyc2VVki5BjI8bD/ucz9yA4P9t4D7i40BCKqf+tLz5hmFAiZXqQk2k+GvpuVbfmUALiehdP+x9/+qsweX2R3XIQxyE5uMiUZmE0t2EdCKNACmaXnezfxLONVjIG6WMfnanE5Qvh9Y4hXJQ6qd7YFKP4Hk245VeSyIl5kBABYTsc6gxN746cTh+8IxUHM/PRVtff+nte8k2tKF0+SIS8z6yZ+PzLz7IeoXM9F8X0NLw1LM5Lhu1taiB4r8uj2vwC8sl05rQwUKFztBXllw2bCakrnAp3vpuOSB1R6Bmrd1FhZ9YvOMyUnbPAJAEHDxTu6NREF2w3O2TD5HI+FPvhsNOL3RSidVwNnrEe0reu0GijXehncsxEW061GJZfgNauGaFxbMfHGMgqySRlycoP0e9jdFDklF+Gu093k+3rZ/rUcqsQl6rTAsFy35hI3NrBwk8IxsS07v1VXuMjUfEjx8mX1su9A/RHsz0jxc0elNfxB1DP6qvBjxUxJnkXj/RhN5UQ6yL00D3E6K9m9PTSCha0wXLlAVjLnWg9/adJu2C3ynCr33q4kKdsC5TPQZUUkQhlPpHXVdqTHeHh/jm4HFKXSSdbxOQrjMuNQ==
+                clientSecret: AgAPKutCPzyc9zB3rVx5caHnnzikHfYYsrRszj29HjDz1No+9LXImAfryX2FzMo8FDL0DayEh6efSTWCF1NPWYNy4EBxzo5kgzTLwdjdAhXi6qg91RhjhFQ/TsAFqFylaMBnEgg51gq30gGlnaop4AfyjJU88PppT8kQEVaVDrWI3bLMCpcP8nG7KeQ6e5kl2OkmiedUM+VZVAClDJDoZO4RmheTcNgVzDCYeYFX9iyF+8f4mlhitFMFb9SLB9mpzKczaUD+ipsev5uiPDxuAHF9aFDLwu6POYrB4wqddaFyuEZR43xdlpW1r9z51ztkexypBHBWWa45NU2SBVLgQ6r3TEOl1xjSzmmFzZPszI8Z5s/uqVqXEQ16HzhRHmi/jXQ+eK5vwNc/UAnZIYo9gbtO8759ocuimY5MtweFpz3QN/ZEi3nksOlyldtZA7FaxHNX6+x2CXJS9cuUi7PQD7yeg/kF3P9CjrPgj+UgmHaY+2q87+ZTxcRpxOpnjYGVb5LT4OIOgtEvzD8MON2EP+UKQy58c6sTFpFlnzLRoCXqUuK8YhbsUf5BgnampSlYcstuTAsPhGcYrtjTaNRTcR50iGLjjijvlw22j1o9TbjYgej4slrPoy04zos54jzK23Tu7KV6GhcZBELPFxdXVKp9emWAQ7Zus9bEZ7wNzRd9vx5cLeseDaScMsG44dJCPkd9k70VaOc/ZSOr3sZZbd7nDbvA6jkTjZE7Kjs+vLT/1SrVuQyADAd9MU44
               template:
                 metadata:
                   name: argocd-oidc
