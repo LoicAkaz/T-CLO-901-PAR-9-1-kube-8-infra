@@ -4,6 +4,7 @@ namespace: identity
 resources:
   - namespace.yaml
   - sealedsecret.yaml
+  - sealedsecret-dex.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
