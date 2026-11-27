@@ -89,12 +89,13 @@ spec:
                 storage: 10Gi
               volumeMode: Filesystem
               accessModes:
-                - ReadWriteMany
+                - ReadWriteOnce
               persistentVolumeReclaimPolicy: Retain
               storageClassName: efs-static
               csi:
                 driver: efs.csi.aws.com
-                volumeHandle: fs-081d9f48a078d2f28
+                # access point UID/GID 10001, racine /loki : n'expose pas le reste du système de fichiers
+                volumeHandle: fs-081d9f48a078d2f28::fsap-017e1066ac9baea75
               claimRef:
                 name: storage-loki-0
                 namespace: logging
